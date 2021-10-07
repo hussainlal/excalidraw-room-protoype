@@ -1,12 +1,12 @@
 import debug from "debug";
 import express from "express";
-import http from "http";
+import https from "https";
 import socketIO from "socket.io";
 
 const serverDebug = debug("server");
 const ioDebug = debug("io");
 const socketDebug = debug("socket");
-
+const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 80; // default port to listen
 
@@ -15,8 +15,12 @@ app.use(express.static("public"));
 app.get("/", (req, res) => {
   res.send("Excalidraw collaboration server is up :)");
 });
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
 
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 
 server.listen(port, () => {
   serverDebug(`listening on port: ${port}`);
@@ -27,7 +31,7 @@ const io = socketIO(server, {
     const headers = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Origin":
-        (req.header && req.header.origin) || "https://excalidraw.com",
+        (req.header && req.header.origin) || "https://excalidraw.com" || "https://10.189.66.238:8080",
       "Access-Control-Allow-Credentials": true,
     };
     res.writeHead(200, headers);
